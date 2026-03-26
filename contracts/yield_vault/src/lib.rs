@@ -65,10 +65,8 @@ impl YieldVault {
         env.storage().instance().set(&DataKey::TotalAssets, &0i128);
         env.storage().instance().set(&DataKey::Initialized, &true);
 
-        env.events().publish(
-            (symbol_short!("init"),),
-            (admin.clone(), token.clone()),
-        );
+        env.events()
+            .publish((symbol_short!("init"),), (admin.clone(), token.clone()));
 
         Ok(())
     }
@@ -132,10 +130,8 @@ impl YieldVault {
             .instance()
             .set(&DataKey::TotalAssets, &(total_assets + amount));
 
-        env.events().publish(
-            (symbol_short!("deposit"),),
-            (from, amount, shares),
-        );
+        env.events()
+            .publish((symbol_short!("deposit"),), (from, amount, shares));
 
         Ok(shares)
     }
@@ -194,10 +190,8 @@ impl YieldVault {
             .instance()
             .set(&DataKey::TotalAssets, &(total_assets - amount));
 
-        env.events().publish(
-            (symbol_short!("withdraw"),),
-            (to, amount, shares),
-        );
+        env.events()
+            .publish((symbol_short!("withdraw"),), (to, amount, shares));
 
         Ok(amount)
     }
@@ -243,10 +237,8 @@ impl YieldVault {
             .instance()
             .set(&DataKey::TotalAssets, &(total_assets - amount));
 
-        env.events().publish(
-            (symbol_short!("rebal"),),
-            (target, amount),
-        );
+        env.events()
+            .publish((symbol_short!("rebal"),), (target, amount));
 
         Ok(())
     }
@@ -305,7 +297,7 @@ impl YieldVault {
 mod tests {
     use super::*;
     use soroban_sdk::testutils::Address as _;
-    use soroban_sdk::{vec, Env};
+    use soroban_sdk::Env;
 
     fn setup_env() -> (Env, YieldVaultClient<'static>, Address, Address, Address) {
         let env = Env::default();
@@ -324,14 +316,14 @@ mod tests {
         (env, client, admin, token_addr, token_admin)
     }
 
-    fn mint_tokens(env: &Env, token_addr: &Address, admin: &Address, to: &Address, amount: i128) {
+    fn mint_tokens(env: &Env, token_addr: &Address, _admin: &Address, to: &Address, amount: i128) {
         let admin_client = soroban_sdk::token::StellarAssetClient::new(env, token_addr);
         admin_client.mint(to, &amount);
     }
 
     #[test]
     fn test_initialize() {
-        let (env, client, admin, token_addr, _) = setup_env();
+        let (_, client, admin, token_addr, _) = setup_env();
         assert_eq!(client.get_admin(), admin);
         assert_eq!(client.get_token(), token_addr);
         assert_eq!(client.total_shares(), 0);
@@ -343,6 +335,7 @@ mod tests {
     fn test_double_initialize_panics() {
         let (env, client, admin, token_addr, _) = setup_env();
         let new_admin = Address::generate(&env);
+        let _ = admin;
         client.initialize(&new_admin, &token_addr);
     }
 
